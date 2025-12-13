@@ -161,6 +161,7 @@ Their pain points:
 The Challenge
 
 Build a "Hulpwijzer" (Benefits Navigator) that helps single parents:
+
 1. Discover what "potjes" (funds/benefits) they might be eligible for
 2. Understand the requirements in plain language
 3. Navigate the application process with confidence
