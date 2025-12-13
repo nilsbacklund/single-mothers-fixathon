@@ -27,9 +27,6 @@ def save_user_info_to_json(user_object: dict, filename: str = "../data/user_info
                 existing_info = json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             existing_info = {}
-
-    print(user_object)
-    print(existing_info)
     
     # Build new info from all provided arguments
     new_info = user_object
@@ -60,25 +57,24 @@ def read_user_info_from_json(filename: str = "../data/user_info.json") -> dict:
     except FileNotFoundError:
         return {"status": "error", "message": "File not found"}
 
-def save_user_info(name: str = None, age: int = None, email: str = None, hobbies: list = None) -> dict:
+def save_user_info(user_obj: dict = None) -> dict:
     # Example tool: save user info to a file (mock implementation)
     user_info = {}
-    if name is not None:
-        user_info["name"] = name
-    if age is not None:
-        user_info["age"] = age
-    if email is not None:
-        user_info["email"] = email
-    if hobbies is not None:
-        user_info["hobbies"] = hobbies
-
+    if user_obj.get("name") is not None:
+        user_info["name"] = user_obj["name"]
+    if user_obj.get("age") is not None:
+        user_info["age"] = user_obj["age"]
+    if user_obj.get("email") is not None:
+        user_info["email"] = user_obj["email"]
+    if user_obj.get("hobbies") is not None:
+        user_info["hobbies"] = user_obj["hobbies"]
     print(user_info)
     
     save_user_info_to_json(user_info)
     return {"status": "success", "saved_info": user_info}
 
 
-def get_user_info() -> dict:
+def get_user_info(_) -> dict:
     # Example tool: return unix time + a timezone label
     user_info = read_user_info_from_json()
    
@@ -124,56 +120,81 @@ tools = [
         "additionalProperties": False
       }
     }
-  }
+  },
+    {
+    "type": "function",
+    "function": {
+      "name": "get_user_info",
+      "description": "Retrieve stored user information from a local file.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": False
+      }
+    }
+  },
 ]
 
-messages = [
-    # {"role": "system", "content": "You are a helpful chatbot."},
-    {"role": "user", "content": """You are supposed to collect information about the user and using the toolcall to collect it. There are a number of fields fill each one in whenever they are telling you details about themself Also reply in English. Here starts the user message: 
-     Hi, Im Nils and like Triathlon! My age is 23"""},
-]
+def create_message(message: str) -> dict:
+    return {"role": "user", "content": message}
+
 
 # 1) Ask model (force tool calling)
-resp = client.chat.completions.create(
-    model="green-l",          # testing with green-r
-    messages=messages,
-    tools=tools,
-    tool_choice="required",   # force the model to call a tool
-)
-
-msg = resp.choices[0].message
-messages.append(msg)
-
-print(messages)
-
-# %%
-
-# 2) If tool calls happened, execute + send tool results back
-if getattr(msg, "tool_calls", None):
-    for call in msg.tool_calls:
-        fn_name = call.function.name
-        fn_args = json.loads(call.function.arguments or "{}")
-
-        # IMPORTANT: only allow tools you explicitly register
-        if fn_name not in TOOL_REGISTRY:
-            tool_result = {"error": f"Tool not allowed: {fn_name}"}
-        else:
-            tool_result = TOOL_REGISTRY[fn_name](fn_args)
-
-        messages.append({
-            "role": "tool",
-            "tool_call_id": call.id,
-            "content": json.dumps(tool_result),
-        })
-
-    # 3) Ask model again so it can use tool output
-    resp2 = client.chat.completions.create(
-        model="green-r",
+def send_message(messages):
+    resp = client.chat.completions.create(
+        model="green-l",          # testing with green-r
         messages=messages,
+        tools=tools,
+        tool_choice="required",   # force the model to call a tool
     )
-    print(resp2.choices[0].message.content)
-else:
+
+    msg = resp.choices[0].message
     messages.append(msg)
+
+    if getattr(msg, "tool_calls", None):
+        for call in msg.tool_calls:
+            fn_name = call.function.name
+            fn_args = json.loads(call.function.arguments or "{}")
+
+            # IMPORTANT: only allow tools you explicitly register
+            print(f"Calling tool: {fn_name} with args: {fn_args}")
+            if fn_name not in TOOL_REGISTRY:
+                tool_result = {"error": f"Tool not allowed: {fn_name}"}
+            else:
+                tool_result = TOOL_REGISTRY[fn_name](fn_args)
+
+            messages.append({
+                "role": "tool",
+                "tool_call_id": call.id,
+                "content": json.dumps(tool_result),
+            })
+
+        # 3) Ask model again so it can use tool output
+        resp2 = client.chat.completions.create(
+            model="green-r",
+            messages=messages,
+        )
+        print(resp2.choices[0].message.content)
+        messages.append(resp2.choices[0].message)
+    else:
+        messages.append(msg)
+
+    return messages
+
+messages = []
+
+initial_message_content = "You are supposed to collect information about the user and using the toolcall to collect it. There are a number of fields fill each one in whenever they are telling you details about themself Also reply in English. Here starts the user message: "
+initial_message = create_message(initial_message_content)
+messages.append(initial_message)
+
+messages = send_message(messages)
+
+
+msg_content = "Hi, Im Nils and like Triathlon! My age is 25"
+messages.append(create_message(msg_content))
+
+messages = send_message(messages)
 
 
 # %%
