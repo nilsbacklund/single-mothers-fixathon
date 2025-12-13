@@ -4,3 +4,4 @@ __pycache__
 user_info.json
 Dataread.txt
 test.py
+rag_index/
