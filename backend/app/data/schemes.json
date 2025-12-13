@@ -1,0 +1,21 @@
+[
+  {
+    "id": "zorgtoeslag",
+    "name": "Zorgtoeslag",
+    "type": "national",
+    "required_fields": ["monthly_income"],
+    "eligibility": { "max_income_year": 32000 },
+    "money_eur_per_month": 120,
+    "time_to_apply_min": 20
+  },
+  {
+    "id": "stadspas_amsterdam",
+    "name": "Stadspas Amsterdam",
+    "type": "municipal",
+    "municipality": "amsterdam",
+    "required_fields": ["municipality", "monthly_income", "children"],
+    "eligibility": {},
+    "money_eur_per_month": 40,
+    "time_to_apply_min": 25
+  }
+]
