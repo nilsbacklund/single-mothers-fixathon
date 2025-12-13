@@ -162,24 +162,23 @@ def send_message(messages):
 
     return messages
 
-messages = []
+if __name__ == "__main__":
 
-initial_message_content = "You are supposed to collect information about the user and using the toolcall to collect it. There are a number of fields fill each one in whenever they are telling you details about themself Also reply in English. Here starts the user message: "
-initial_message = create_message(initial_message_content)
-messages.append(initial_message)
+    messages = []
 
-messages = send_message(messages)
+    initial_message_content = "You are supposed to collect information about the user and using the toolcall to collect it. There are a number of fields fill each one in whenever they are telling you details about themself Also reply in English. Here starts the user message: "
+    initial_message = create_message(initial_message_content)
+    messages.append(initial_message)
 
-
-msg_content = "Hi, Im Nils and like Triathlon! My age is 25"
-messages.append(create_message(msg_content))
-
-messages = send_message(messages)
+    messages = send_message(messages)
 
 
-# %%
-for m in messages:
-    print(m)
-# %%
-print(get_user_info())
-# %%
+    msg_content = "Hi, Im Nils and like Triathlon! My age is 25"
+    messages.append(create_message(msg_content))
+
+    messages = send_message(messages)
+
+    for m in messages:
+        print(m)
+
+    print(get_user_info())
