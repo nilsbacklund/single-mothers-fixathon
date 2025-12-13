@@ -68,8 +68,8 @@ def scrape_urls_from_file(input_file, output_file, delay=1):
 
 if __name__ == "__main__":
     # Configuration
-    INPUT_FILE = "single_parents_doc_list.txt"  # Your input file
-    OUTPUT_FILE = "scraped_content.txt"  # Output file
+    INPUT_FILE = "../data/sources.txt"  # Your input file
+    OUTPUT_FILE = "../data/scraped_content.txt"  # Output file
     DELAY_SECONDS = 1  # Delay between requests (be respectful to servers)
     
     print("Starting web scraping...")

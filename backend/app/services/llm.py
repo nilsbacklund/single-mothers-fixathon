@@ -3,6 +3,8 @@ import os, json, time
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from rag_retrival import RAGRetriever, RAG_SEARCH_TOOL, INDEX_DIR, EMBED_MODEL_NAME
+
 load_dotenv()
 
 GREENPT_API_KEY = os.environ["GREENPT_API_KEY"]
@@ -68,15 +70,21 @@ def save_user_info(user_obj: dict = None) -> dict:
     return {"status": "success", "saved_info": user_info}
 
 
-def get_user_info(_) -> dict:
+def get_user_info(_ = None) -> dict:
     # Example tool: return unix time + a timezone label
     user_info = read_user_info_from_json()
    
     return user_info
 
+rag_retriever = RAGRetriever(
+    index_dir=INDEX_DIR,
+    embed_model_name=EMBED_MODEL_NAME,
+)
+
 TOOL_REGISTRY = {
     "save_user_info": save_user_info,
     "get_user_info": get_user_info,
+    "rag_search": rag_retriever.rag_search,
 }
 
 tools = [
@@ -114,6 +122,7 @@ tools = [
       }
     }
   },
+  RAG_SEARCH_TOOL,
 ]
 
 def create_message(message: str) -> dict:
@@ -173,7 +182,12 @@ if __name__ == "__main__":
     messages = send_message(messages)
 
 
-    msg_content = "Hi, Im Nils and like Triathlon! My age is 25"
+    msg_content = "Hi, Im Wurt, a single mom and like Tennis! My age is 20 and im looking at what substaties i can get. Can you help me do some research on this?"
+    messages.append(create_message(msg_content))
+
+    messages = send_message(messages)
+
+    msg_content = "Can you give me more details?"
     messages.append(create_message(msg_content))
 
     messages = send_message(messages)
