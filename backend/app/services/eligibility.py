@@ -8,22 +8,31 @@ def check_eligibility(profile: dict):
 
     for s in SCHEMES:
         eligible = True
+        rules = s.get("eligibility", {})
 
-        if "max_income_year" in s["eligibility"]:
+        # Income rule
+        max_income = rules.get("max_income_year")
+        if max_income is not None:
             income = profile.get("monthly_income")
-            if income and income * 12 > s["eligibility"]["max_income_year"]:
+            if income is None or income * 12 > max_income:
                 eligible = False
 
-        if s["type"] == "municipal":
-            if profile.get("municipality", "").lower() != s["municipality"]:
+        # Rent rule (if present)
+        max_rent = rules.get("max_rent")
+        if max_rent is not None:
+            rent = profile.get("rent_amount")
+            if rent is None or rent > max_rent:
                 eligible = False
 
-        if eligible:
-            results.append({
-                "id": s["id"],
-                "name": s["name"],
-                "money": s["money_eur_per_month"],
-                "time": s["time_to_apply_min"]
-            })
+        if not eligible:
+            continue
+
+        results.append({
+            "id": s.get("id"),
+            "name": s.get("name"),
+            "money": s.get("money_eur_per_month"),
+            "time": s.get("time_to_apply_min"),
+            "required_fields": s.get("required_fields", []),
+        })
 
     return results

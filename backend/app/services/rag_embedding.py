@@ -12,8 +12,9 @@ from sentence_transformers import SentenceTransformer
 # ----------------------------
 # Config
 # ----------------------------
-DATA_DIR = Path("backend/app/data/rag_data")
-OUT_DIR = Path("backend/app/data/rag_index")
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = BASE_DIR / "app" / "data" / "rag_data"
+OUT_DIR = BASE_DIR / "app" / "data" / "rag_index"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"

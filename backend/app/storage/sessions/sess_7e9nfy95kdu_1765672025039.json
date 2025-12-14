@@ -1,0 +1,41 @@
+{
+  "_lang": "en",
+  "age": 25,
+  "municipality": "Delft",
+  "children": 2,
+  "monthly_income": 1800,
+  "_ranked_subsidies": [
+    {
+      "id": "745231",
+      "title": "Beleidsregel tijdelijke individuele bijzondere bijstand energiekosten 2024 gemeente Delft",
+      "description": "Tijdelijke tegemoetkoming voor energiekosten in 2024 voor huishoudens met een hoge energierekening en laag inkomen.",
+      "category": "social_support",
+      "confidence": "medium",
+      "applicationTime": null,
+      "processingTime": null,
+      "url": "https://lokaleregelgeving.overheid.nl/CVDR745231/1"
+    },
+    {
+      "id": "353706",
+      "title": "Verordening individuele inkomenstoeslag Participatiewet 2015",
+      "description": "Individuele inkomenstoeslag voor langdurig laag inkomen, vervangen de langdurigheidstoeslag per 1-1-2015.",
+      "category": "social_support",
+      "confidence": "medium",
+      "applicationTime": null,
+      "processingTime": null,
+      "url": "https://lokaleregelgeving.overheid.nl/CVDR353706/2"
+    },
+    {
+      "id": "723049",
+      "title": "Beleidsregel leerlingenvervoer gemeente Delft 2024",
+      "description": "Regeling voor leerlingenvervoer voor scholieren onder bepaalde voorwaarden.",
+      "category": "social_support",
+      "confidence": "low",
+      "applicationTime": null,
+      "processingTime": null,
+      "url": "https://lokaleregelgeving.overheid.nl/CVDR723049/1"
+    }
+  ],
+  "_explanation": "Based on the ranked subsidies and the provided RAG snippets, here are the most relevant subsidies for the user, along with explanations and next steps:\n\n### Most Relevant Subsidies\n\n1. **Beleidsregel tijdelijke individuele bijzondere bijstand energiekosten 2024 gemeente Delft**\n   - **Why it applies**: This subsidy provides temporary financial assistance for energy costs in 2024 for households with high energy bills and low income. The user has a monthly income of \u20ac1800 and children under 18, which likely meets the criteria for this assistance.\n   - **What to do next**: The user should gather the required documents, which include an application form, address proof, pay slip, energy bill, and benefit specification. They should then submit these documents to the municipality of Delft to apply for this subsidy.\n\n2. **Verordening individuele inkomenstoeslag Participatiewet 2015**\n   - **Why it applies**: This subsidy provides an individual income supplement for those with long-term low income. The user's low income makes them potentially eligible for this supplement.\n   - **What to do next**: The user should prepare an application form, address proof, and any other required documents. They should then submit these documents to the municipality of Delft to apply for this subsidy.\n\n3. **Beleidsregel leerlingenvervoer gemeente Delft 2024**\n   - **Why it applies**: This subsidy provides financial assistance for student transportation under certain conditions. The user has children under 18, which might make them eligible for this assistance.\n   - **What to do next**: The user should gather the required documents, which include an application form, address proof, and a decision document. They should then submit these documents to the municipality of Delft to apply for this subsidy.\n\n### General Information from RAG Snippets\n\nThe RAG snippets provide additional context about various subsidies and support schemes available in Delft. For example:\n- **Collectieve aanvullende zorgverzekering**: This includes additional health insurance coverage, which might be relevant for the user's family.\n- **Participatiefonds volwassenen**: This fund supports various initiatives for adults, which could be beneficial for the user.\n- **Kinderpakket**: This package includes various benefits for children, such as the Jeugdcultuurfonds and Jeugdsportfonds, which could be useful for the user's children.\n\n### Next Steps for the User\n\n1. **Gather Required Documents**: Collect all necessary documents for each subsidy application, such as proof of address, pay slips, energy bills, and any other required specifications.\n2. **Submit Applications**: Submit the completed applications along with the required documents to the municipality of Delft.\n3. **Follow Up**: After submitting the applications, follow up with the municipality to ensure that the applications are processed and to inquire about any additional information that might be needed.\n\nBy following these steps, the user can potentially access financial assistance to help with energy costs, income supplementation, and student transportation.",
+  "_mode": "results"
+}

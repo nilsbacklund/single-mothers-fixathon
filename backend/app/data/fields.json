@@ -1,0 +1,27 @@
+{
+  "municipality": {
+    "question": "Which municipality do you live in?",
+    "type": "string",
+    "sensitivity": "low"
+  },
+  "monthly_income": {
+    "question": "About how much is your monthly net income?",
+    "type": "number",
+    "sensitivity": "high"
+  },
+  "children": {
+    "question": "How many children under 18 live with you?",
+    "type": "number",
+    "sensitivity": "medium"
+  },
+  "rent_amount": {
+    "question": "Do you pay rent? If yes, roughly how much per month?",
+    "type": "number",
+    "sensitivity": "high"
+  },
+  "age": {
+    "question": "What is your age?",
+    "type": "number",
+    "sensitivity": "medium"
+  }
+}

@@ -10,8 +10,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-
-INDEX_DIR = Path("backend/app/data/rag_index")
+BASE_DIR = Path(__file__).resolve().parents[2]
+INDEX_DIR = BASE_DIR / "app" / "data" / "rag_index"
 EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 TOP_K_DEFAULT = 5
 
@@ -27,17 +27,23 @@ class RAGRetriever:
         meta_path = index_dir / "metadata.json"
         if not index_path.exists() or not meta_path.exists():
             raise FileNotFoundError(
-                "Index not found. Run build_index.py first to create rag_index/faiss.index and metadata.json"
+                "Index not found. Run rag_embedding.py first to create rag_index/faiss.index and metadata.json"
             )
 
         self.index = faiss.read_index(str(index_path))
-        self.meta: List[Dict[str, Any]] = json.loads(meta_path.read_text(encoding="utf-8"))
+        self.meta: List[Dict[str, Any]] = json.loads(
+            meta_path.read_text(encoding="utf-8")
+        )
 
         self.model = SentenceTransformer(embed_model_name)
 
     def rag_search(self, data: dict) -> List[Dict[str, Any]]:
-        query = data.get("query", "")
-        top_k = data.get("top_k", TOP_K_DEFAULT)
+        query = (data.get("query") or "").strip()
+        top_k = int(data.get("top_k") or TOP_K_DEFAULT)
+
+        if not query:
+            return []
+
         q = self.model.encode([query], convert_to_numpy=True).astype("float32")
         q = l2_normalize(q)
 
@@ -50,11 +56,13 @@ class RAGRetriever:
             m = self.meta[idx]
             out.append({
                 "score": float(score),
-                "source": m["source"],
-                "chunk_id": m["id"],
-                "text": m["text"],
+                "source": m.get("source", ""),
+                "chunk_id": m.get("id", ""),
+                "text": m.get("text", ""),
             })
+
         return out
+
 
 RAG_SEARCH_TOOL = {
     "type": "function",
@@ -116,7 +124,11 @@ def run_chat():
                     query = args.get("query", user)
                     top_k = int(args.get("top_k", TOP_K_DEFAULT))
 
-                    results = retriever.rag_search(query=query, top_k=top_k)
+                    results = retriever.rag_search({
+                        "query": query,
+                        "top_k": top_k,
+                    })
+
 
                     # IMPORTANT: one tool message per tool_call_id
                     messages.append({

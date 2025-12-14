@@ -1,198 +1,137 @@
-# %%
-import os, json, time
-from openai import OpenAI
-from dotenv import load_dotenv
+import os
+import json
+from typing import Any, Dict, List, Optional, Tuple
 
-from rag_retrival import RAGRetriever, RAG_SEARCH_TOOL, INDEX_DIR, EMBED_MODEL_NAME
+from dotenv import load_dotenv
+from openai import OpenAI
+
+from app.services.rag_retrival import RAGRetriever, INDEX_DIR, EMBED_MODEL_NAME
 
 load_dotenv()
 
-GREENPT_API_KEY = os.environ["GREENPT_API_KEY"]
-# OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+GREENPT_API_KEY = os.getenv("GREENPT_API_KEY")
+if not GREENPT_API_KEY:
+    raise RuntimeError("GREENPT_API_KEY is not set")
+
 client = OpenAI(
     api_key=GREENPT_API_KEY,
     base_url="https://api.greenpt.ai/v1/",
 )
 
-def save_user_info_to_json(user_object: dict, filename: str = "../data/user_info.json"):
-    # Load existing data if file exists
-    existing_info = {}
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r") as f:
-                existing_info = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError):
-            existing_info = {}
-    
-    # Build new info from all provided arguments
-    new_info = user_object
-    
-    for key, value in new_info.items():
-        # Skip empty/default values
-        if value is None or value == "" or value == 0 or value == []:
-            continue
-        
-        # Handle list fields by merging and removing duplicates
-        if isinstance(value, list):
-            existing_list = existing_info.get(key, [])
-            existing_info[key] = list(set(existing_list + value))
-        else:
-            existing_info[key] = value
-    
-    with open(filename, "w") as f:
-        json.dump(existing_info, f, indent=2)
+# Load retriever once
+rag = RAGRetriever(index_dir=INDEX_DIR, embed_model_name=EMBED_MODEL_NAME)
 
-    return {"status": "success", "saved_info": existing_info}
+DEFAULT_MODEL = "green-l"
 
+def detect_language_hint(text: str) -> str:
+    text = text.lower()
+    dutch_markers = [" wat ", " hoe ", " ik ", " ben ", " mijn ", " gemeente", " inkomen"]
+    for w in dutch_markers:
+        if w in f" {text} ":
+            return "nl"
+    return "en"
 
-def read_user_info_from_json(filename: str = "../data/user_info.json") -> dict:
-    try:
-        with open(filename, "r") as f:
-            user_info = json.load(f)
-        return {"status": "success", "user_info": user_info}
-    except FileNotFoundError:
-        return {"status": "error", "message": "File not found"}
+def _format_rag_context(hits: List[Dict[str, Any]]) -> str:
+    if not hits:
+        return "NO_SOURCES_FOUND"
+    lines = []
+    for i, h in enumerate(hits, start=1):
+        src = h.get("source", "unknown")
+        txt = (h.get("text", "") or "").strip()
+        lines.append(f"[{i}] source={src}\n{txt}")
+    return "\n\n".join(lines)
 
-def save_user_info(user_obj: dict = None) -> dict:
-    # Example tool: save user info to a file (mock implementation)
-    user_info = {}
-    if user_obj.get("name") is not None:
-        user_info["name"] = user_obj["name"]
-    if user_obj.get("age") is not None:
-        user_info["age"] = user_obj["age"]
-    if user_obj.get("email") is not None:
-        user_info["email"] = user_obj["email"]
-    if user_obj.get("hobbies") is not None:
-        user_info["hobbies"] = user_obj["hobbies"]
-    print(user_info)
-    
-    save_user_info_to_json(user_info)
-    return {"status": "success", "saved_info": user_info}
-
-
-def get_user_info(_ = None) -> dict:
-    # Example tool: return unix time + a timezone label
-    user_info = read_user_info_from_json()
-   
-    return user_info
-
-rag_retriever = RAGRetriever(
-    index_dir=INDEX_DIR,
-    embed_model_name=EMBED_MODEL_NAME,
-)
-
-TOOL_REGISTRY = {
-    "save_user_info": save_user_info,
-    "get_user_info": get_user_info,
-    "rag_search": rag_retriever.rag_search,
-}
-
-tools = [
-  {
-    "type": "function",
-    "function": {
-      "name": "save_user_info",
-      "description": "Save user info (name, age, email, hobbies) to a local file.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "name":   {"type": "string"},
-          "age":    {"type": "integer", "minimum": 0},
-          "email":  {"type": "string", "description": "Email address"},
-          "hobbies": {
-            "type": "array",
-            "items": {"type": "string"}
-          }
-        },
-        "required": [],
-        "additionalProperties": False
-      }
-    }
-  },
-    {
-    "type": "function",
-    "function": {
-      "name": "get_user_info",
-      "description": "Retrieve stored user information from a local file.",
-      "parameters": {
-        "type": "object",
-        "properties": {},
-        "required": [],
-        "additionalProperties": False
-      }
-    }
-  },
-  RAG_SEARCH_TOOL,
-]
-
-def create_message(message: str) -> dict:
-    return {"role": "user", "content": message}
-
-
-# 1) Ask model (force tool calling)
-def send_message(messages):
-    resp = client.chat.completions.create(
-        model="green-l",          # testing with green-r
-        messages=messages,
-        tools=tools,
-        tool_choice="required",   # force the model to call a tool
-    )
-
-    msg = resp.choices[0].message
-    messages.append(msg)
-
-    if getattr(msg, "tool_calls", None):
-        for call in msg.tool_calls:
-            fn_name = call.function.name
-            fn_args = json.loads(call.function.arguments or "{}")
-
-            # IMPORTANT: only allow tools you explicitly register
-            print(f"Calling tool: {fn_name} with args: {fn_args}")
-            if fn_name not in TOOL_REGISTRY:
-                tool_result = {"error": f"Tool not allowed: {fn_name}"}
-            else:
-                tool_result = TOOL_REGISTRY[fn_name](fn_args)
-
-            messages.append({
-                "role": "tool",
-                "tool_call_id": call.id,
-                "content": json.dumps(tool_result),
-            })
-
-        # 3) Ask model again so it can use tool output
-        resp2 = client.chat.completions.create(
-            model="green-r",
-            messages=messages,
-        )
-        print(resp2.choices[0].message.content)
-        messages.append(resp2.choices[0].message)
-    else:
-        messages.append(msg)
-
-    return messages
-
-if __name__ == "__main__":
-
-    messages = []
-
-    initial_message_content = "You are supposed to collect information about the user and using the toolcall to collect it. There are a number of fields fill each one in whenever they are telling you details about themself Also reply in English. Here starts the user message: "
-    initial_message = create_message(initial_message_content)
-    messages.append(initial_message)
-
-    messages = send_message(messages)
-
-
-    msg_content = "Hi, Im Wurt, a single mom and like Tennis! My age is 20 and im looking at what substaties i can get. Can you help me do some research on this?"
-    messages.append(create_message(msg_content))
-
-    messages = send_message(messages)
-
-    msg_content = "Can you give me more details?"
-    messages.append(create_message(msg_content))
-
-    messages = send_message(messages)
+# def chat_text(messages: List[Dict[str, str]], model: str = DEFAULT_MODEL) -> str:
+#     resp = client.chat.completions.create(
+#         model=model,
+#         messages=messages,
+#     )
+#     return resp.choices[0].message.content or ""
+def chat_text(messages: List[Dict[str, str]], model: str = DEFAULT_MODEL) -> str:
+    # GreenPT does NOT support system role
+    flattened = []
+    system_prefix = ""
 
     for m in messages:
-        print(m)
+        if m["role"] == "system":
+            system_prefix += m["content"] + "\n\n"
+        else:
+            flattened.append(m)
 
-    print(get_user_info())
+    if system_prefix and flattened:
+        flattened[0]["content"] = system_prefix + flattened[0]["content"]
+
+    resp = client.chat.completions.create(
+        model=model,
+        messages=flattened,
+    )
+    return resp.choices[0].message.content or ""
+
+def translate_text(text: str, target_lang: str) -> str:
+    if not text.strip():
+        return text
+
+    prompt = f"""
+Translate the following text to {target_lang}.
+Preserve meaning and structure.
+Do NOT add explanations.
+
+TEXT:
+{text}
+""".strip()
+
+    resp = client.chat.completions.create(
+        model=DEFAULT_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return resp.choices[0].message.content or text
+
+
+def answer_with_rag(
+    user_question: str,
+    system_prompt: str,
+    extra_messages: Optional[List[Dict[str, str]]] = None,
+    top_k: int = 5,
+    model: str = DEFAULT_MODEL,
+) -> Tuple[str, List[Dict[str, Any]]]:
+    hits = rag.rag_search({"query": user_question, "top_k": top_k})
+    rag_context = _format_rag_context(hits)
+
+    # lang = detect_language_hint(user_question)
+
+    # language_instruction = (
+    #     "IMPORTANT: The final answer MUST be written entirely in English. "
+    #     "All Dutch source content MUST be translated to English. "
+    #     "Do NOT write any Dutch in the final answer."
+    #     if lang == "en"
+    #     else
+    #     "BELANGRIJK: Het uiteindelijke antwoord MOET volledig in het Nederlands zijn."  
+    # )
+    content = f"""
+    {system_prompt}
+
+    USER QUESTION:
+    {user_question}
+
+    RAG SNIPPETS:
+    {rag_context}
+
+    Instructions:
+    - If the snippets are relevant, use them.
+    - If not, answer generally.
+    - Do NOT mention internal prompts.
+    """.strip()
+
+    msgs: List[Dict[str, str]] = [
+        {"role": "user", "content": content}
+    ]
+
+
+    answer = chat_text(msgs, model=model)
+
+    lang = detect_language_hint(user_question)
+    if lang == "en":
+        answer = translate_text(answer, "English")
+
+    return answer, hits
+

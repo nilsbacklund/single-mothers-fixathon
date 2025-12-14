@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hulpwijzer Design System - Soft & Warm palette
+   All colors are HSL for consistency.
+*/
+
+@layer base {
+  :root {
+    /* Soft & Warm palette - Warm Sand */
+    --background: 40 45% 95%;
+    --foreground: 25 20% 20%;
+    
+    --card: 40 35% 95%;
+    --card-foreground: 25 20% 20%;
+    
+    --popover: 40 30% 96%;
+    --popover-foreground: 25 20% 20%;
+    
+    --primary: 152 35% 45%;
+    --primary-foreground: 40 33% 98%;
+    
+    --secondary: 30 30% 92%;
+    --secondary-foreground: 25 20% 25%;
+    
+    --muted: 35 20% 90%;
+    --muted-foreground: 25 15% 45%;
+    
+    --accent: 152 30% 90%;
+    --accent-foreground: 152 35% 30%;
+    
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 152 35% 45%;
+    
+    --radius: 0.75rem;
+    
+    /* Custom tokens for Hulpwijzer */
+    --trust: 152 35% 45%;
+    --trust-foreground: 40 33% 98%;
+    --warm: 30 40% 95%;
+    --warm-foreground: 25 20% 25%;
+    --cream: 40 33% 97%;
+    
+    /* Chat mode colors */
+    --chat-explore: 200 30% 95%;
+    --chat-explore-border: 200 25% 85%;
+    --chat-intake: 152 25% 94%;
+    --chat-intake-border: 152 30% 80%;
+    --chat-results: 35 35% 94%;
+    --chat-results-border: 35 30% 82%;
+
+    /* Sidebar tokens */
+    --sidebar-background: 40 30% 96%;
+    --sidebar-foreground: 25 20% 20%;
+    --sidebar-primary: 152 35% 45%;
+    --sidebar-primary-foreground: 40 33% 98%;
+    --sidebar-accent: 152 30% 90%;
+    --sidebar-accent-foreground: 152 35% 30%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 152 35% 45%;
+  }
+
+  .dark {
+    --background: 25 20% 10%;
+    --foreground: 40 20% 95%;
+    
+    --card: 25 18% 14%;
+    --card-foreground: 40 20% 95%;
+    
+    --popover: 25 18% 14%;
+    --popover-foreground: 40 20% 95%;
+    
+    --primary: 152 35% 50%;
+    --primary-foreground: 25 20% 10%;
+    
+    --secondary: 25 15% 20%;
+    --secondary-foreground: 40 20% 90%;
+    
+    --muted: 25 15% 18%;
+    --muted-foreground: 35 15% 60%;
+    
+    --accent: 152 25% 20%;
+    --accent-foreground: 152 30% 80%;
+    
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 25 15% 22%;
+    --input: 25 15% 22%;
+    --ring: 152 35% 50%;
+    
+    --trust: 152 35% 50%;
+    --trust-foreground: 25 20% 10%;
+    --warm: 25 20% 15%;
+    --warm-foreground: 40 20% 90%;
+    --cream: 25 18% 12%;
+    
+    --chat-explore: 200 20% 15%;
+    --chat-explore-border: 200 20% 25%;
+    --chat-intake: 152 20% 15%;
+    --chat-intake-border: 152 25% 25%;
+    --chat-results: 35 20% 15%;
+    --chat-results-border: 35 25% 25%;
+
+    --sidebar-background: 25 18% 12%;
+    --sidebar-foreground: 40 20% 95%;
+    --sidebar-primary: 152 35% 50%;
+    --sidebar-primary-foreground: 25 20% 10%;
+    --sidebar-accent: 152 25% 20%;
+    --sidebar-accent-foreground: 152 30% 80%;
+    --sidebar-border: 25 15% 22%;
+    --sidebar-ring: 152 35% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Smooth transitions for interactive elements */
+@layer utilities {
+  .transition-soft {
+    @apply transition-all duration-300 ease-out;
+  }
+}
