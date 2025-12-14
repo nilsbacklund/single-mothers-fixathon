@@ -8,6 +8,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import ProgramList from "@/components/ProgramList";
 import { mapSchemesToPrograms } from "@/lib/mapSchemestoProgram";
 import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 
 const Index = () => {
   const { mode, schemes } = useEligibility();
@@ -16,6 +17,7 @@ const Index = () => {
   const { t } = useTranslation();
   const chatSectionRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<EligibilityChatRef>(null);
+  const trustSectionRef = useRef<HTMLDivElement>(null);
 
   const handleScrollToChat = () => {
     chatSectionRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,12 +26,17 @@ const Index = () => {
     }, 500);
   };
 
+  const handleScrollToTrust = () => {
+    trustSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <AppShell showTrustStrip={false}>
-      {/* Hero Section */}
-      <section className="flex min-h-[85vh] items-center pt-6 md:pt-0">
+      {/* Hero Section - Condensed */}
+      <section className="relative flex min-h-[85vh] items-center pt-6 md:pt-0">
         <div className="container mx-auto px-6">
           <div className="grid items-center gap-10 md:grid-cols-[1fr_auto] md:gap-16 lg:gap-24">
+            {/* Left Column - Main Content */}
             <div className="max-w-xl">
               <p className="mb-4 text-sm font-medium tracking-wide text-muted-foreground/60">
                 {t("hero.label")}
@@ -40,23 +47,37 @@ const Index = () => {
               <p className="mb-6 text-lg leading-relaxed text-muted-foreground/80">
                 {t("hero.description")}
               </p>
+              {/* Soft CTA button */}
               <Button
                 variant="outline"
                 onClick={handleScrollToChat}
-                className="border-primary/30 text-primary hover:bg-primary/5"
+                className="border-primary/30 text-primary hover:bg-primary/5 hover:text-primary font-sans"
               >
                 {t("hero.cta")}
               </Button>
             </div>
 
+            {/* Right Column - Testimonials */}
             <div className="hidden md:flex md:justify-start">
               <RotatingTestimonials />
             </div>
           </div>
         </div>
+
+        {/* Scroll nudge */}
+        <button
+          onClick={handleScrollToTrust}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors cursor-pointer"
+          aria-label="Scroll to learn more"
+        >
+          <ChevronDown className="h-6 w-6 animate-bounce" />
+        </button>
       </section>
 
-      <TrustSection />
+      {/* Trust Section */}
+      <div ref={trustSectionRef}>
+        <TrustSection />
+      </div>
 
       {/* Conversation Section */}
       <section ref={chatSectionRef} className="pb-32">

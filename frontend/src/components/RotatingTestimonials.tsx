@@ -4,6 +4,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import fatimaPhoto from "@/assets/testimonial-fatima.jpg";
 import andriyPhoto from "@/assets/testimonial-andriy.jpg";
 import sannePhoto from "@/assets/testimonial-sanne.jpg";
+import partnerLogo from "@/assets/partner-singlesupermom.png";
 
 interface Testimonial {
   key: "fatima" | "andriy" | "sanne";
@@ -67,7 +68,7 @@ const RotatingTestimonials = () => {
               index === activeIndex ? "opacity-100" : "opacity-0 pointer-events-none"
             )}
           >
-            <blockquote className="text-sm text-muted-foreground/70 leading-relaxed italic">
+            <blockquote className="text-sm text-muted-foreground leading-relaxed italic">
               "{t(`testimonials.${testimonial.key}.quote`)}"
             </blockquote>
             <div className="text-xs text-muted-foreground/50 mt-3">
@@ -92,6 +93,16 @@ const RotatingTestimonials = () => {
             aria-label={`View testimonial ${index + 1}`}
           />
         ))}
+      </div>
+
+      {/* Partnership */}
+      <div className="mt-12 flex flex-col items-center gap-3">
+        <span className="text-sm text-muted-foreground/50">{t("hero.partnership")}</span>
+        <img 
+          src={partnerLogo} 
+          alt="Single SuperMom" 
+          className="h-10 opacity-80 hover:opacity-100 transition-opacity"
+        />
       </div>
     </div>
   );

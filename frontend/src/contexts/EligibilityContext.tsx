@@ -1,8 +1,20 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+const REQUIRED_FIELDS = [
+  "isSingleParent",
+  "numberOfChildren",
+  "netIncome",
+  "savingsAssets",
+  "municipality",
+] as const;
+
+type RequiredField = (typeof REQUIRED_FIELDS)[number];
+
+interface EligibilityData {
+  [key: string]: string | number | boolean | undefined;
+}
 
 export type Role = "user" | "assistant";
-// export type ChatMode = "intake" | "results";
-type Mode = "intake" | "results";
 
 export interface ChatMessage {
   id: string;
@@ -14,111 +26,158 @@ export interface Scheme {
   [key: string]: unknown;
 }
 
-interface EligibilityState {
-  sessionId: string;
-  profile: Record<string, unknown>;
-  schemes: Scheme[];
-  requiredFields: string[];
+
+interface EligibilityContextType {
+  data: EligibilityData;
+  updateField: (field: string, value: string | number | boolean) => void;
+  completedFields: string[];
   missingFields: string[];
-  sources: Array<Record<string, unknown>>;
-  messages: ChatMessage[];
-  mode: Mode;
+  isComplete: boolean;
+  progress: { completed: number; total: number };
+  clearData: () => void;
 
-  setSessionId: (id: string) => void;
-  setFromBackend: (payload: any) => void;
-  pushMessage: (m: ChatMessage) => void;
-  reset: () => void;
+  sessionId?: string;
+  schemes?: Scheme[];
+  messages?: ChatMessage[];
+  mode?: "intake" | "results";
+
+  setFromBackend?: (payload: any) => void;
+  pushMessage?: (m: ChatMessage) => void;
+  resetSession?: () => void;
 }
 
-const EligibilityContext = createContext<EligibilityState | null>(null);
+const EligibilityContext =
+  createContext<EligibilityContextType | undefined>(undefined);
 
-function makeSessionId() {
-  return `sess_${Math.random().toString(36).slice(2)}_${Date.now()}`;
-}
+const STORAGE_KEY = "hulpwijzer_eligibility_data";
 
-export function EligibilityProvider({ children }: { children: React.ReactNode }) {
-  const [sessionId, setSessionId] = useState(() => {
-    const existing = localStorage.getItem("hulpwijzer_session_id");
-    if (existing) return existing;
-    const fresh = makeSessionId();
-    localStorage.setItem("hulpwijzer_session_id", fresh);
-    return fresh;
+export const EligibilityProvider = ({ children }: { children: ReactNode }) => {
+  const demoData: EligibilityData = {
+    isSingleParent: true,
+    numberOfChildren: 2,
+    netIncome: 2500,
+    savingsAssets: 5000,
+    municipality: "Amsterdam",
+  };
+
+
+  const [data, setData] = useState<EligibilityData>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+
+        if (
+          parsed.parentalStatus !== undefined ||
+          parsed.employmentStatus !== undefined
+        ) {
+          localStorage.removeItem(STORAGE_KEY);
+          return demoData;
+        }
+
+        const hasNewFields = REQUIRED_FIELDS.some(
+          (field) => parsed[field] !== undefined
+        );
+
+        return hasNewFields ? parsed : demoData;
+      }
+      return demoData;
+    } catch {
+      return demoData;
+    }
   });
 
-  const [profile, setProfile] = useState<Record<string, unknown>>({});
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }, [data]);
+
+  const updateField = (
+    field: string,
+    value: string | number | boolean
+  ) => {
+    setData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const clearData = () => {
+    setData({});
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const completedFields = REQUIRED_FIELDS.filter(
+    (field) => data[field] !== undefined && data[field] !== ""
+  );
+
+  const missingFields = REQUIRED_FIELDS.filter(
+    (field) => data[field] === undefined || data[field] === ""
+  );
+
+  const isComplete = missingFields.length === 0;
+
+  const progress = {
+    completed: completedFields.length,
+    total: REQUIRED_FIELDS.length,
+  };
+
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [schemes, setSchemes] = useState<Scheme[]>([]);
-  const [requiredFields, setRequiredFields] = useState<string[]>([]);
-  const [missingFields, setMissingFields] = useState<string[]>([]);
-  const [sources, setSources] = useState<Array<Record<string, unknown>>>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [mode, setMode] = useState<Mode>("intake");
+  const [mode, setMode] = useState<"intake" | "results">("intake");
 
-  const value = useMemo<EligibilityState>(() => ({
-    sessionId,
-    profile,
-    schemes,
-    requiredFields,
-    missingFields,
-    sources,
-    messages,
-    mode,
+  const setFromBackend = (payload: any) => {
+    if (!payload) return;
 
-    setSessionId: (id: string) => {
-      setSessionId(id);
-      localStorage.setItem("hulpwijzer_session_id", id);
-    },
+    if (payload.profile) {
+      setData(payload.profile);
+    }
 
-    setFromBackend: (payload: any) => {
-      setProfile(payload?.profile ?? {});
-      setSchemes(payload?.schemes ?? []);
-      setRequiredFields(payload?.required_fields ?? []);
-      setMissingFields(payload?.missing_fields ?? []);
-      setSources(payload?.sources ?? []);
+    setSchemes(payload.schemes ?? []);
+    setSessionId(payload.session_id);
+    setMode(payload.mode === "results" ? "results" : "intake");
+  };
 
-      if (payload?.mode === "results") {
-        setMode("results");
-      } else {
-        setMode("intake");
-      }
-    },
+  const pushMessage = (m: ChatMessage) => {
+    setMessages((prev) => [...prev, m]);
+  };
 
-    pushMessage: (m: ChatMessage) =>
-      setMessages((prev) => [...prev, m]),
-
-    reset: () => {
-      const fresh = makeSessionId();
-      setSessionId(fresh);
-      localStorage.setItem("hulpwijzer_session_id", fresh);
-      setProfile({});
-      setSchemes([]);
-      setRequiredFields([]);
-      setMissingFields([]);
-      setSources([]);
-      setMessages([]);
-      setMode("intake");
-    },
-  }), [
-    sessionId,
-    profile,
-    schemes,
-    requiredFields,
-    missingFields,
-    sources,
-    messages,
-    mode,
-  ]);
+  const resetSession = () => {
+    clearData();
+    setSchemes([]);
+    setMessages([]);
+    setSessionId(undefined);
+    setMode("intake");
+  };
 
   return (
-    <EligibilityContext.Provider value={value}>
+    <EligibilityContext.Provider
+      value={{
+        data,
+        updateField,
+        completedFields,
+        missingFields,
+        isComplete,
+        progress,
+        clearData,
+
+        sessionId,
+        schemes,
+        messages,
+        mode,
+        setFromBackend,
+        pushMessage,
+        resetSession,
+      }}
+    >
       {children}
     </EligibilityContext.Provider>
   );
-}
+};
 
-export function useEligibility() {
-  const ctx = useContext(EligibilityContext);
-  if (!ctx) {
-    throw new Error("useEligibility must be used within EligibilityProvider");
+export const useEligibility = () => {
+  const context = useContext(EligibilityContext);
+  if (!context) {
+    throw new Error(
+      "useEligibility must be used within an EligibilityProvider"
+    );
   }
-  return ctx;
-}
+  return context;
+};

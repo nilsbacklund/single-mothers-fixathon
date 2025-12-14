@@ -1,6 +1,7 @@
 import { ChevronRight, Clock } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ProgramCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface ProgramCardProps {
   applicationTime?: number; // in minutes
   processingTime?: number; // in weeks
   className?: string;
+  onApply?: () => void;
 }
 
 const ProgramCard = ({
@@ -20,6 +22,7 @@ const ProgramCard = ({
   applicationTime,
   processingTime,
   className,
+  onApply,
 }: ProgramCardProps) => {
   const { t } = useTranslation();
 
@@ -46,7 +49,7 @@ const ProgramCard = ({
   return (
     <div
       className={cn(
-        "group cursor-pointer rounded-xl border border-border bg-card p-4 transition-soft hover:border-primary/50 hover:shadow-md",
+        "group rounded-xl border border-border bg-card p-4 transition-soft hover:border-primary/50 hover:shadow-md",
         className
       )}
     >
@@ -62,8 +65,7 @@ const ProgramCard = ({
               conf.textClass
             )}
           >
-            {conf.label}
-          </span>
+            {conf.label}</span>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
       </div>
@@ -85,6 +87,22 @@ const ProgramCard = ({
               <span>{t("programs.timeline.processingTime")}: {processingTime} {t("programs.timeline.weeks")}</span>
             </div>
           )}
+        </div>
+      )}
+    {/* Apply CTA */}
+      {onApply && (
+        <div className="mt-4 border-t border-border/50 pt-4">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onApply();
+            }}
+            variant="outline"
+            className="w-full border-primary/30 text-primary hover:bg-primary/5 hover:text-primary"
+            size="sm"
+          >
+            {t("programs.applyHere")}
+          </Button>
         </div>
       )}
     </div>

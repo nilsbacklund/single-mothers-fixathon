@@ -28,11 +28,6 @@ const Results = () => {
     },
   ]);
 
-  const exampleQuestions = [
-    t("results.exampleQuestions.childcare"),
-    t("results.exampleQuestions.qualify"),
-  ];
-
   const handleSend = (content: string) => {
     setMessages((prev) => [
       ...prev,
@@ -52,7 +47,7 @@ const Results = () => {
             <p className="mb-8 font-sans text-muted-foreground">
               {t("results.noData.description")}
             </p>
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild variant="outline" size="lg" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:text-primary">
               <Link to="/">
                 <ArrowLeft className="h-4 w-4" />
                 {t("results.noData.cta")}
@@ -92,7 +87,6 @@ const Results = () => {
               <div className="border-t border-border/50 p-4">
                 <SimpleChatInput
                   placeholder={t("results.askPlaceholder")}
-                  exampleQuestions={exampleQuestions}
                   onSend={handleSend}
                 />
               </div>

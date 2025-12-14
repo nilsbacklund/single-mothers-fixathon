@@ -1,4 +1,8 @@
 import { Loader2, FileQuestion, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useNavigate } from "react-router-dom";
+import { useApplications } from "@/contexts/ApplicationsContext";
+import { applicationStepsData } from "@/data/applicationSteps";
 import ProgramCard from "./ProgramCard";
 import { cn } from "@/lib/utils";
 
@@ -10,8 +14,8 @@ export interface Program {
   description: string;
   category: string;
   confidence: "high" | "medium" | "low";
-  applicationTime?: number; // in minutes
-  processingTime?: number; // in weeks
+  applicationTime?: number;
+  processingTime?: number;
 }
 
 interface ProgramListProps {
@@ -30,7 +34,7 @@ const EmptyState = () => (
       No options found
     </h3>
     <p className="max-w-xs font-sans text-sm text-muted-foreground">
-      We couldn’t find any programs matching your situation.
+      We couldn't find any programs matching your situation.
     </p>
   </div>
 );
@@ -68,10 +72,77 @@ const ErrorState = ({ onRetry }: { onRetry?: () => void }) => (
 
 const ProgramList = ({
   state = "ready",
-  programs = [],
+  programs,
   className,
   onRetry,
 }: ProgramListProps) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { addApplication } = useApplications();
+
+  // ✅ DUMMY DATA (translated correctly)
+  const resolvedPrograms: Program[] =
+    programs ?? [
+      {
+        id: "1",
+        title: t("programs.childcare.title"),
+        description: t("programs.childcare.description"),
+        category: t("programs.childcare.category"),
+        confidence: "high",
+        applicationTime: 15,
+        processingTime: 4,
+      },
+      {
+        id: "2",
+        title: t("programs.childBudget.title"),
+        description: t("programs.childBudget.description"),
+        category: t("programs.childBudget.category"),
+        confidence: "high",
+        applicationTime: 10,
+        processingTime: 6,
+      },
+      {
+        id: "3",
+        title: t("programs.healthcare.title"),
+        description: t("programs.healthcare.description"),
+        category: t("programs.healthcare.category"),
+        confidence: "medium",
+        applicationTime: 10,
+        processingTime: 4,
+      },
+      {
+        id: "4",
+        title: t("programs.housing.title"),
+        description: t("programs.housing.description"),
+        category: t("programs.housing.category"),
+        confidence: "medium",
+        applicationTime: 20,
+        processingTime: 8,
+      },
+      {
+        id: "5",
+        title: t("programs.municipal.title"),
+        description: t("programs.municipal.description"),
+        category: t("programs.municipal.category"),
+        confidence: "low",
+        applicationTime: 30,
+        processingTime: 2,
+      },
+    ];
+
+  const handleApply = (programId: string) => {
+    const programData = applicationStepsData[programId];
+    const totalSteps = programData?.steps.length || 0;
+
+    addApplication({
+      programId,
+      titleKey: programId,
+      totalSteps,
+    });
+
+    navigate("/applications");
+  };
+
   return (
     <div className={cn("", className)}>
       {state === "empty" && <EmptyState />}
@@ -79,7 +150,7 @@ const ProgramList = ({
       {state === "error" && <ErrorState onRetry={onRetry} />}
       {state === "ready" && (
         <div className="grid gap-3">
-          {programs.map((program) => (
+          {resolvedPrograms.map((program) => (
             <ProgramCard
               key={program.id}
               title={program.title}
@@ -88,6 +159,7 @@ const ProgramList = ({
               confidence={program.confidence}
               applicationTime={program.applicationTime}
               processingTime={program.processingTime}
+              onApply={() => handleApply(program.id)}
             />
           ))}
         </div>

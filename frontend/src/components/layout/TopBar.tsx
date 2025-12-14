@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import hulpwijzerLogo from "@/assets/hulpwijzer-logo.svg";
 
 const languages = [
   { code: "en" as const, label: "English" },
@@ -31,9 +32,7 @@ const TopBar = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">H</span>
-          </div>
+          <img src={hulpwijzerLogo} alt="Hulpwijzer" className="h-10 w-10" />
           <span className="text-lg font-semibold text-foreground">Hulpwijzer</span>
         </Link>
 
@@ -44,7 +43,7 @@ const TopBar = () => {
               size="sm"
               className="text-sm"
             >
-              {t("nav.explore")}
+              {t("nav.home")}
             </Button>
           </Link>
           <Link to="/results">
@@ -53,7 +52,16 @@ const TopBar = () => {
               size="sm"
               className="text-sm"
             >
-              {t("nav.results")}
+              {t("nav.yourOptions")}
+            </Button>
+          </Link>
+          <Link to="/applications">
+            <Button 
+              variant={isActive("/applications") ? "secondary" : "ghost"} 
+              size="sm"
+              className="text-sm"
+            >
+              {t("nav.yourApplications")}
             </Button>
           </Link>
         </nav>
