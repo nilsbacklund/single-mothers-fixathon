@@ -3,14 +3,9 @@ uvicorn
 pandas
 python-dotenv
 requests
-greenpt
 openai
 pytest
-pytest-cov
-black
-mypy
 pydantic
 typing-extensions
 tqdm
-langchain
 numpy
